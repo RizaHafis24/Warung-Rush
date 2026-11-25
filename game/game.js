@@ -473,28 +473,34 @@ function baseShot(overrides) {
 
 export function applyShot(name) {
   if (name === 'cover') {
+    // PEAK RUSH (v3 restage): Closing Chaos, all four order slots filled
+    // (one VIP), every station cooking, both serving plates full, streak
+    // firing, timer in the red. No empty slot anywhere in the frame.
+    // The pan holds a Mie Ayam mid-assembly (needs Bawang) while the wok
+    // fries Nasi Goreng — a real gameplay moment, not a posed still.
     baseShot({
       shot: 'cover',
-      timeLeft: 74,
-      rushPhase: 2,
-      score: 1250,
-      streak: 3,
-      bestStreak: 3,
-      served: 9,
+      timeLeft: 28,
+      rushPhase: 3,
+      score: 1850,
+      streak: 7,
+      bestStreak: 7,
+      served: 14,
       hearts: 3,
       orders: [
-        { id: 1, dishId: 'nasgor', timeLeft: 18, timeMax: 45, vip: false },
-        { id: 2, dishId: 'mieayam', timeLeft: 33.6, timeMax: 48, vip: false },
-        { id: 3, dishId: 'esteh', timeLeft: 5, timeMax: 25, vip: false },
+        { id: 1, dishId: 'nasgor', timeLeft: 10, timeMax: 45, vip: false },
+        { id: 2, dishId: 'mieayam', timeLeft: 26, timeMax: 48, vip: false },
+        { id: 3, dishId: 'sate', timeLeft: 38, timeMax: 50, vip: true },
+        { id: 4, dishId: 'esteh', timeLeft: 5, timeMax: 25, vip: false },
       ],
-      pan: ['nasi', 'telur'],
+      pan: ['mie', 'ayam'],
       stations: {
-        wok: { dishId: 'nasgor', progress: 0.55, done: false },
-        grill: { dishId: null, progress: 0, done: false },
-        drink: { dishId: null, progress: 0, done: false },
+        wok: { dishId: 'nasgor', progress: 0.7, done: false },
+        grill: { dishId: 'sate', progress: 0.5, done: false },
+        drink: { dishId: 'esteh', progress: 0.8, done: false },
       },
-      plates: ['sate', null],
-      message: 'Sate Ayam siap disajikan!',
+      plates: ['sate', 'nasgor'],
+      message: 'Streak 7! Semua kompor menyala!',
       messageT: 3,
     });
   } else if (name === 'rush') {
@@ -513,11 +519,11 @@ export function applyShot(name) {
         { id: 3, dishId: 'sate', timeLeft: 40, timeMax: 50, vip: true },
         { id: 4, dishId: 'esteh', timeLeft: 3.8, timeMax: 25, vip: false },
       ],
-      pan: ['mie', 'ayam'],
+      pan: ['nasi', 'telur'],
       stations: {
         wok: { dishId: 'mieayam', progress: 0.7, done: false },
         grill: { dishId: 'sate', progress: 0.4, done: false },
-        drink: { dishId: null, progress: 0, done: false },
+        drink: { dishId: 'esteh', progress: 0.6, done: false },
       },
       plates: ['nasgor', 'esteh'],
       message: 'RUSH HOUR! Pesanan menumpuk!',
@@ -541,7 +547,7 @@ export function applyShot(name) {
       pan: [],
       stations: {
         wok: { dishId: null, progress: 0, done: false },
-        grill: { dishId: null, progress: 0, done: false },
+        grill: { dishId: 'sate', progress: 0.4, done: false },
         drink: { dishId: null, progress: 0, done: false },
       },
       plates: [null, 'nasgor'],

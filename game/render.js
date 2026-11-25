@@ -9,14 +9,16 @@ export const W = 1280;
 export const H = 720;
 
 // Warung palette (from the design spec): terracotta walls, zinc counter,
-// slate-green chalkboard, cream tickets, batik gold.
+// slate-green chalkboard, cream tickets, batik gold. Warmed and saturated
+// in the v3 revision so the stall reads as a glowing evening warung, not a
+// pale UI grid: deep terracotta wall, richer sage zinc, warm wood.
 export const PAL = {
-  wall: '#C4714A',
-  wallDark: '#A85A38',
-  zinc: '#8FA8A0',
-  zincDark: '#6E8A82',
-  wood: '#7A4A21',
-  woodLight: '#9C6B35',
+  wall: '#B85A26',
+  wallDark: '#8F4519',
+  zinc: '#6E9A86',
+  zincDark: '#557A6A',
+  wood: '#8A5426',
+  woodLight: '#B07A3E',
   chalk: '#2D4A3E',
   chalkLight: '#3A5C4C',
   ticket: '#F5EDD6',
@@ -65,6 +67,98 @@ function text(ctx, str, x, y, size, color, align = 'center', weight = 'bold') {
   ctx.textAlign = align;
   ctx.textBaseline = 'middle';
   ctx.fillText(str, x, y);
+}
+
+// Warm light: a soft radial glow that fades to transparent. Used for the
+// wok fire, the grill heat and the golden light over plated food.
+function radialGlow(ctx, x, y, r, inner, outer) {
+  const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+  g.addColorStop(0, inner);
+  g.addColorStop(1, outer);
+  ctx.fillStyle = g;
+  ctx.fillRect(x - r, y - r, r * 2, r * 2);
+}
+
+// One face: skin circle, two eyes with a glint, eyebrows and a smile.
+// `opts` picks the headwear / hair so each customer reads as a person.
+function drawFace(ctx, cx, cy, r, skin, opts = {}) {
+  ctx.save();
+  // Head.
+  ctx.fillStyle = skin;
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
+  // Ears.
+  ctx.beginPath(); ctx.arc(cx - r, cy, r * 0.22, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(cx + r, cy, r * 0.22, 0, Math.PI * 2); ctx.fill();
+  // Headwear / hair, drawn over the top of the head.
+  if (opts.hijab) {
+    // The hijab frames the face: a full covering, then the face opening.
+    ctx.fillStyle = opts.hijab;
+    ctx.beginPath(); ctx.arc(cx, cy, r * 1.12, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = skin;
+    ctx.beginPath(); ctx.ellipse(cx, cy + r * 0.08, r * 0.68, r * 0.78, 0, 0, Math.PI * 2); ctx.fill();
+  } else if (opts.peci) {
+    ctx.fillStyle = '#1A1A1A';
+    ctx.beginPath(); ctx.ellipse(cx, cy - r * 0.62, r * 0.82, r * 0.5, 0, Math.PI, 0); ctx.fill();
+    ctx.fillRect(cx - r * 0.82, cy - r * 0.66, r * 1.64, r * 0.16);
+  } else if (opts.hair) {
+    ctx.fillStyle = opts.hair;
+    ctx.beginPath(); ctx.arc(cx, cy - r * 0.18, r * 0.92, Math.PI * 1.02, Math.PI * 1.98); ctx.fill();
+    // A tuft sticking up.
+    ctx.beginPath(); ctx.moveTo(cx - r * 0.3, cy - r * 0.95);
+    ctx.quadraticCurveTo(cx - r * 0.1, cy - r * 1.45, cx + r * 0.25, cy - r * 1.0);
+    ctx.quadraticCurveTo(cx, cy - r * 0.8, cx - r * 0.3, cy - r * 0.95);
+    ctx.fill();
+  } else if (opts.bandana) {
+    // A bandana cap: the top half of the head, straight edge at the brow.
+    ctx.fillStyle = opts.bandana;
+    ctx.beginPath(); ctx.arc(cx, cy, r, Math.PI, 0); ctx.closePath(); ctx.fill();
+    // Knot tails on the side.
+    ctx.beginPath();
+    ctx.moveTo(cx + r * 0.9, cy - r * 0.28);
+    ctx.lineTo(cx + r * 1.45, cy - r * 0.1);
+    ctx.lineTo(cx + r * 1.3, cy + r * 0.22);
+    ctx.lineTo(cx + r * 0.82, cy + r * 0.08);
+    ctx.closePath(); ctx.fill();
+  }
+  // Eyes: dark dots with a white glint, set wide so they read at a glance.
+  const eyeY = cy + r * 0.02;
+  const eyeDX = r * 0.36;
+  const eyeR = Math.max(2.2, r * 0.11);
+  for (const s of [-1, 1]) {
+    ctx.fillStyle = '#2B2118';
+    ctx.beginPath(); ctx.arc(cx + s * eyeDX, eyeY, eyeR, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#FFFFFF';
+    ctx.beginPath(); ctx.arc(cx + s * eyeDX + eyeR * 0.3, eyeY - eyeR * 0.3, eyeR * 0.35, 0, Math.PI * 2); ctx.fill();
+  }
+  // Eyebrows, angled for expression.
+  ctx.strokeStyle = '#2B2118';
+  ctx.lineWidth = Math.max(1.6, r * 0.09);
+  ctx.beginPath(); ctx.moveTo(cx - eyeDX - eyeR, eyeY - r * 0.28);
+  ctx.lineTo(cx - eyeDX + eyeR, eyeY - r * 0.32); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx + eyeDX - eyeR, eyeY - r * 0.32);
+  ctx.lineTo(cx + eyeDX + eyeR, eyeY - r * 0.28); ctx.stroke();
+  // Blush.
+  ctx.fillStyle = 'rgba(211,47,47,0.35)';
+  ctx.beginPath(); ctx.arc(cx - r * 0.58, cy + r * 0.38, r * 0.16, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(cx + r * 0.58, cy + r * 0.38, r * 0.16, 0, Math.PI * 2); ctx.fill();
+  // Smile: open and eager, or a closed grin.
+  if (opts.openSmile) {
+    ctx.fillStyle = '#7A1F1F';
+    ctx.beginPath(); ctx.ellipse(cx, cy + r * 0.48, r * 0.3, r * 0.2, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(cx - r * 0.22, cy + r * 0.36, r * 0.44, r * 0.1);
+  } else {
+    ctx.strokeStyle = '#2B2118';
+    ctx.lineWidth = Math.max(1.8, r * 0.1);
+    ctx.beginPath(); ctx.arc(cx, cy + r * 0.22, r * 0.34, Math.PI * 0.15, Math.PI * 0.85); ctx.stroke();
+  }
+  // Mustache, for the bapak.
+  if (opts.mustache) {
+    ctx.fillStyle = '#2B2118';
+    ctx.beginPath(); ctx.ellipse(cx - r * 0.16, cy + r * 0.34, r * 0.24, r * 0.1, -0.25, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(cx + r * 0.16, cy + r * 0.34, r * 0.24, r * 0.1, 0.25, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.restore();
 }
 
 // ---------------------------------------------------------------- dishes
@@ -292,7 +386,11 @@ export function drawScene(ctx, S, now) {
 
   drawWallShelf(ctx);
   drawOrderBoard(ctx, S, now);
+  drawCustomers(ctx, S, now);
   drawCounter(ctx, S, now);
+  drawCook(ctx, S, now);
+  // Station header, drawn over the cook's apron so it stays legible.
+  text(ctx, 'KOMPOR & MINUMAN  —  klik stasiun yang menyala', LAYOUT.stations.x + 8, LAYOUT.stations.y + 8, 13, '#3E5A50', 'left');
   drawBottom(ctx, S, now);
   drawHud(ctx, S, now);
   drawParticles(ctx, S);
@@ -323,6 +421,93 @@ function drawWallShelf(ctx) {
   ctx.strokeStyle = PAL.red; ctx.lineWidth = 3;
   roundRect(ctx, 980, 210, 276, 32, 8); ctx.stroke();
   text(ctx, 'WARUNG RUSH  •  BUKA 24 JAM', 1118, 227, 16, PAL.red);
+}
+
+// Waiting customers: three distinct faces peeking over the counter in the
+// wall strip, between the spice shelf and the sign. Each reads as a person
+// (hijab, peci + mustache, excited kid), so the stall has people waiting,
+// not just tickets. Drawn before the counter, so the zinc counter top
+// covers their shoulders below y 256.
+function drawCustomers(ctx, S, now) {
+  const customers = [
+    { x: 540, skin: '#E8B48A', hijab: '#2E7D6B', shirt: '#2E7D6B' },
+    { x: 660, skin: '#C98A5E', peci: true, mustache: true, shirt: '#7A4A21' },
+    { x: 760, skin: '#F2C49B', hair: '#1A1A1A', shirt: '#E8A833', openSmile: true },
+  ];
+  for (const c of customers) {
+    // Shoulders, just peeking over the counter.
+    ctx.fillStyle = c.shirt;
+    ctx.beginPath();
+    ctx.moveTo(c.x - 46, 258);
+    ctx.lineTo(c.x - 30, 240);
+    ctx.lineTo(c.x + 30, 240);
+    ctx.lineTo(c.x + 46, 258);
+    ctx.closePath(); ctx.fill();
+    drawFace(ctx, c.x, 226, 26, c.skin, c);
+  }
+}
+
+// The cook at the wok: head and bandana in the wall strip, shoulders over
+// the counter, arms reaching down to the wok with a spatula, tossing food
+// mid-air. Drawn after the counter so the cook stands in front of the
+// station, arms clear of the WOK label.
+function drawCook(ctx, S, now) {
+  const cx = LAYOUT.stations.x + LAYOUT.stationW / 2; // 872, wok centre
+  const cooking = !!S.stations.wok.dishId;
+  // Head + red bandana (wall strip, clear of the order board above).
+  drawFace(ctx, cx, 226, 21, '#C98A5E', { bandana: '#D32F2F', openSmile: true });
+  // Neck.
+  ctx.fillStyle = '#C98A5E';
+  ctx.fillRect(cx - 7, 244, 14, 12);
+  // Torso: red shirt + white apron, ending above the WOK label (y 302).
+  ctx.fillStyle = '#B03A2E';
+  ctx.beginPath();
+  ctx.moveTo(cx - 24, 252);
+  ctx.lineTo(cx + 24, 252);
+  ctx.lineTo(cx + 52, 292);
+  ctx.lineTo(cx - 52, 292);
+  ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#FFFDF5';
+  roundRect(ctx, cx - 30, 258, 60, 34, 8); ctx.fill();
+  ctx.strokeStyle = 'rgba(0,0,0,0.15)'; ctx.lineWidth = 2;
+  roundRect(ctx, cx - 30, 258, 60, 34, 8); ctx.stroke();
+  ctx.fillStyle = 'rgba(0,0,0,0.08)';
+  ctx.fillRect(cx - 18, 272, 36, 12);
+  // Arms: right arm holds the spatula into the wok, left steadies the rim.
+  ctx.strokeStyle = '#C98A5E';
+  ctx.lineCap = 'round';
+  ctx.lineWidth = 13;
+  ctx.beginPath(); ctx.moveTo(cx + 46, 282); ctx.lineTo(cx + 24, 350); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx - 46, 282); ctx.lineTo(cx - 34, 338); ctx.stroke();
+  // Hands.
+  ctx.fillStyle = '#C98A5E';
+  ctx.beginPath(); ctx.arc(cx + 24, 350, 8, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(cx - 34, 338, 8, 0, Math.PI * 2); ctx.fill();
+  // Spatula: wooden handle from the right hand into the wok, steel blade.
+  ctx.strokeStyle = '#8A5A2B';
+  ctx.lineWidth = 5;
+  ctx.beginPath(); ctx.moveTo(cx + 24, 350); ctx.lineTo(cx + 8, 368); ctx.stroke();
+  ctx.fillStyle = '#C8C8C8';
+  ctx.save();
+  ctx.translate(cx + 6, 370);
+  ctx.rotate(-0.5);
+  roundRect(ctx, -12, -7, 24, 14, 4); ctx.fill();
+  ctx.restore();
+  // The toss: a dashed motion arc above the wok + golden bits arcing
+  // through the air, so the cook reads as mid-action. Bobs gently with
+  // `now`; frozen at a fixed pose in screenshots.
+  const toss = cooking ? 1 : 0.6;
+  ctx.strokeStyle = 'rgba(232,168,51,0.55)';
+  ctx.lineWidth = 3;
+  ctx.setLineDash([8, 6]);
+  ctx.beginPath(); ctx.arc(cx, 372, 46, Math.PI * 1.15, Math.PI * 1.85); ctx.stroke();
+  ctx.setLineDash([]);
+  const dots = [[-34, -31], [-12, -44], [12, -44], [34, -31]];
+  ctx.fillStyle = '#E8A833';
+  dots.forEach(([dx, dy], i) => {
+    const bob = Math.sin(now * 6 + i * 1.7) * 3 * toss;
+    ctx.beginPath(); ctx.arc(cx + dx, 372 + dy + bob, 3.5, 0, Math.PI * 2); ctx.fill();
+  });
 }
 
 function drawOrderBoard(ctx, S, now) {
@@ -478,7 +663,8 @@ function drawPan(ctx, S, now) {
 
 function drawStations(ctx, S, now) {
   const st = LAYOUT.stations;
-  text(ctx, 'KOMPOR & MINUMAN  —  klik stasiun yang menyala', st.x + 8, st.y + 8, 13, '#3E5A50', 'left');
+  // (The "KOMPOR & MINUMAN" header is drawn in drawScene, after the cook,
+  // so it stays legible over the cook's apron.)
   const ids = ['wok', 'grill', 'drink'];
   ids.forEach((id, i) => {
     const x = st.x + i * (LAYOUT.stationW + 12);
@@ -497,12 +683,25 @@ function drawStations(ctx, S, now) {
     text(ctx, info.name, x + LAYOUT.stationW / 2, y + 22, 17, '#F5EDD6');
     // Station visual.
     if (id === 'wok') {
-      drawFlame(ctx, x + 72, y + 128, 1.1, now);
+      // Fire glow spilling onto the counter while the wok is cooking,
+      // and flames licking the pan: a big one below it, two small
+      // tongues at the pan's rim. Brighter while cooking.
+      if (station.dishId) {
+        radialGlow(ctx, x + 72, y + 110, 190, 'rgba(255,166,40,0.32)', 'rgba(255,166,40,0)');
+      }
+      const fs = station.dishId ? 1.4 : 1.1;
+      drawFlame(ctx, x + 72, y + 138, fs, now);
+      drawFlame(ctx, x + 26, y + 102, fs * 0.55, now + 0.7);
+      drawFlame(ctx, x + 118, y + 102, fs * 0.55, now + 1.3);
       ctx.fillStyle = '#1A1A1A';
       ctx.beginPath(); ctx.arc(x + 72, y + 96, 46, 0, Math.PI); ctx.closePath(); ctx.fill();
       ctx.fillStyle = '#2E2E2E';
       ctx.beginPath(); ctx.ellipse(x + 72, y + 96, 46, 10, 0, 0, Math.PI * 2); ctx.fill();
     } else if (id === 'grill') {
+      // Grill heat glow while something is on the grill.
+      if (station.dishId) {
+        radialGlow(ctx, x + 72, y + 100, 150, 'rgba(240,138,29,0.30)', 'rgba(240,138,29,0)');
+      }
       const g = 0.6 + 0.4 * Math.sin(now * 3);
       ctx.fillStyle = `rgba(240,138,29,${0.25 + g * 0.3})`;
       roundRect(ctx, x + 14, y + 60, 116, 78, 8); ctx.fill();
@@ -544,9 +743,9 @@ function drawStations(ctx, S, now) {
 
 function drawBottom(ctx, S, now) {
   const b = LAYOUT.bottom;
-  ctx.fillStyle = '#5E3410';
+  ctx.fillStyle = '#6B3A12';
   ctx.fillRect(0, b.y, W, b.h);
-  ctx.fillStyle = '#7A4A21';
+  ctx.fillStyle = '#8A5426';
   ctx.fillRect(0, b.y, W, 6);
   // Serving plates.
   const pl = LAYOUT.plates;
@@ -558,6 +757,8 @@ function drawBottom(ctx, S, now) {
     ctx.fillStyle = dishId ? '#FFFDF5' : 'rgba(255,255,255,0.10)';
     roundRect(ctx, x, y, LAYOUT.plateW, LAYOUT.plateH - 16, 12); ctx.fill();
     if (dishId) {
+      // Warm golden light over the finished food, so it glows.
+      radialGlow(ctx, x + LAYOUT.plateW / 2, y + 52, 95, 'rgba(232,168,51,0.28)', 'rgba(232,168,51,0)');
       ctx.strokeStyle = PAL.gold; ctx.lineWidth = 3;
       roundRect(ctx, x, y, LAYOUT.plateW, LAYOUT.plateH - 16, 12); ctx.stroke();
       drawDish(ctx, dishId, x + LAYOUT.plateW / 2, y + 52, 0.95);
