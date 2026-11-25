@@ -11,6 +11,10 @@ orders fast, and serve every customer before their patience runs out.
 
 Built for the make.fun bounty **best-cooking-game-20261125-0137**.
 
+## Trailer
+
+▶️ [Watch the trailer (18 seconds)](assets/warung-rush-trailer.mp4)
+
 ## How to Play
 
 **Goal:** serve every customer's order before their patience bar runs out.
